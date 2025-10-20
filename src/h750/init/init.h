@@ -35,5 +35,16 @@ clock_info_t init_clock_adv(
 
 clock_info_t init_clock(void);
 
+
+/* valid pll src: PLLSRC_HSI, PLLSRC_CSI, PLLSRC_HSE */ 
+void pll_1_start(unsigned src, unsigned M, unsigned Nmul, unsigned FRACN,
+    unsigned P, unsigned Q, unsigned R, unsigned fref_after_M);
+
+void pll_2_start(unsigned src, unsigned M, unsigned Nmul, unsigned FRACN,
+    unsigned P, unsigned Q, unsigned R, unsigned fref_after_M);
+
+void pll_3_start(unsigned src, unsigned M, unsigned Nmul, unsigned FRACN,
+    unsigned P, unsigned Q, unsigned R, unsigned fref_after_M);
+
 #endif
 

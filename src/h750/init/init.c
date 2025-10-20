@@ -10,6 +10,121 @@
 /* ---- User PLL plan ---- */
 #define HSE 26000000u
 
+#define PLLSRC      0
+#define DIVM1       4
+#define DIVM2       12
+#define DIVM3       20
+
+#define PLL1FRACEN  0
+#define PLL1VCOSEL  1
+#define PLL1RGE     2
+
+#define PLL2FRACEN  4
+#define PLL2VCOSEL  5
+#define PLL2RGE     6
+
+#define PLL3FRACEN  8
+#define PLL3VCOSEL  9
+#define PLL3RGE     10
+
+#define DIVP1EN     16
+#define DIVQ1EN     17
+#define DIVR1EN     18
+#define DIVP2EN     19
+#define DIVQ2EN     20
+#define DIVR2EN     21
+#define DIVP3EN     22
+#define DIVQ3EN     23
+#define DIVR3EN     24
+
+#define PLL1ON      24
+#define PLL1RDY     25
+#define PLL2ON      26
+#define PLL2RDY     27
+#define PLL3ON      28
+#define PLL3RDY     29
+
+#define PLLSRC_HSI  0u
+#define PLLSRC_CSI  1u
+#define PLLSRC_HSE  2u
+
+/* optimized for size */
+static void pll_start_min(volatile unsigned *DIVR, volatile unsigned *FRACR,
+        unsigned on_bit, unsigned rdy_bit, unsigned rge_bit,
+        unsigned vcosel_bit, unsigned fracen_bit, unsigned divpen,
+        unsigned divqen, unsigned divren, unsigned divm_bit, unsigned src,
+        unsigned M, unsigned Nmul, unsigned FRACN, unsigned P, unsigned Q,
+        unsigned R, unsigned fref_after_M)
+{
+    *RCC_CR &= ~(1u<<on_bit);
+
+    while (*RCC_CR & (1u<<rdy_bit)) {}
+
+    unsigned v = *RCC_PLLCKSELR;
+    v &= ~((0x3u<<PLLSRC) | (0x3Fu<<divm_bit));
+    v |=  ((src&3u)<<PLLSRC) | ((M&0x3Fu)<<divm_bit);
+    *RCC_PLLCKSELR = v;
+
+    unsigned cf = *RCC_PLLCFGR;
+
+    cf &= ~((0x3u<<rge_bit)|(1u<<vcosel_bit)|(1u<<fracen_bit)|
+            (1u<<divpen)|(1u<<divqen)|(1u<<divren));
+
+    cf |= (((fref_after_M<2000000u)?
+                0u:(fref_after_M<4000000u)?
+                    1u:(fref_after_M<8000000u)?
+                        2u:3u)<<rge_bit);
+
+    if (P) cf |= (1u<<divpen);
+    if (Q) cf |= (1u<<divqen);
+    if (R) cf |= (1u<<divren);
+
+    *DIVR = (((Nmul-1u)&0x1FFu)
+          | (((P?P-1u:0u)&0x7Fu)<<9)
+          | (((Q?Q-1u:0u)&0x7Fu)<<16)
+          | (((R?R-1u:0u)&0x7Fu)<<24));
+
+    if (FRACN) {
+        *FRACR=((FRACN&0x1FFFu)<<3);
+        cf|=(1u<<fracen_bit);
+    } else {
+        *FRACR=0u;
+    }
+
+    *RCC_PLLCFGR = cf;
+
+    *RCC_CR |= (1u<<on_bit);
+
+    while (!(*RCC_CR & (1u<<rdy_bit))) {}
+}
+
+void pll_1_start(unsigned src, unsigned M, unsigned Nmul, unsigned FRACN,
+    unsigned P, unsigned Q, unsigned R, unsigned fref_after_M)
+{
+    pll_start_min(RCC_PLL1DIVR, RCC_PLL1FRACR,
+              PLL1ON, PLL1RDY, PLL1RGE, PLL1VCOSEL, PLL1FRACEN,
+              DIVP1EN, DIVQ1EN, DIVR1EN, DIVM1,
+              src, M, Nmul, FRACN, P, Q, R, fref_after_M);
+}
+
+void pll_2_start(unsigned src, unsigned M, unsigned Nmul, unsigned FRACN,
+    unsigned P, unsigned Q, unsigned R, unsigned fref_after_M)
+{
+    pll_start_min(RCC_PLL2DIVR, RCC_PLL2FRACR,
+              PLL2ON, PLL2RDY, PLL2RGE, PLL2VCOSEL, PLL2FRACEN,
+              DIVP2EN, DIVQ2EN, DIVR2EN, DIVM2,
+              src, M, Nmul, FRACN, P, Q, R, fref_after_M);
+}
+
+void pll_3_start(unsigned src, unsigned M, unsigned Nmul, unsigned FRACN,
+    unsigned P, unsigned Q, unsigned R, unsigned fref_after_M)
+{
+    pll_start_min(RCC_PLL3DIVR, RCC_PLL3FRACR,
+              PLL3ON, PLL3RDY, PLL3RGE, PLL3VCOSEL, PLL3FRACEN,
+              DIVP3EN, DIVQ3EN, DIVR3EN, DIVM3,
+              src, M, Nmul, FRACN, P, Q, R, fref_after_M);
+}
+
 clock_info_t init_clock(void) {
     return init_clock_adv(13, 240, 1, 10, 2);
 }
@@ -69,43 +184,7 @@ clock_info_t init_clock_adv (
     #define D3PPRE      4
     *RCC_D3CFGR = (0x4u << D3PPRE); /* /2 (APB4/PCLK4) */
 
-    /*  PLL1: src=HSE, integer mode (no FRAC)  */
-    #define PLLSRC      0       /* RCC_PLLCKSELR[1:0] */
-    #define DIVM1       4       /* RCC_PLLCKSELR[9:4] (write actual value) */
-    *RCC_PLLCKSELR =
-        (0x2u << PLLSRC) |   /* 0b10 = HSE */
-        (M  << DIVM1);       /* M */
-
-    #define PLL1VCOSEL  1
-    #define PLL1RGE     2       /* [3:2] */
-    #define PLL1FRACEN  0
-    #define DIVP1EN     16
-    #define DIVQ1EN     17
-    #define DIVR1EN     18
-    *RCC_PLLCFGR =
-        (0x1u << PLL1RGE) |  /* input range 2..4 MHz (RGE = 01) */
-        (1u   << DIVP1EN) |
-        (1u   << DIVQ1EN) |
-        (1u   << DIVR1EN);
-    *RCC_PLLCFGR &= ~(1u << PLL1VCOSEL);  /* wide VCO */
-    *RCC_PLLCFGR &= ~(1u << PLL1FRACEN);  /* fractional mode OFF */
-
-    /* value-1 encoding for N/P/Q/R in RCC_PLL1DIVR */
-    #define DIVN1       0
-    #define DIVP1       9
-    #define DIVQ1       16
-    #define DIVR1       24
-    *RCC_PLL1DIVR =
-        ((N - 1u) << DIVN1) |
-        ((P - 1u) << DIVP1) |
-        ((Q - 1u) << DIVQ1) |
-        ((R - 1u) << DIVR1);
-
-    /*  Enable PLL1 and wait ready  */
-    #define PLL1ON      24
-    #define PLL1RDY     25
-    *RCC_CR |= (1u << PLL1ON);
-    while (!(*RCC_CR & (1u << PLL1RDY))) {}
+    pll_1_start(PLLSRC_HSE, M, N, 0u, P, Q, R, 26000000u);
 
     /*  Flash latency + write high-frequency  */
     #define LATENCY     0
@@ -147,4 +226,3 @@ clock_info_t init_clock_adv (
 
     return ci;
 }
-
