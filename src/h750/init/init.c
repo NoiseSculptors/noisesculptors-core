@@ -7,9 +7,6 @@
 #include "vtor.h"
 #include <stdint.h>
 
-/* ---- User PLL plan ---- */
-#define HSE 26000000u
-
 #define PLLSRC      0
 #define DIVM1       4
 #define DIVM2       12
@@ -44,10 +41,6 @@
 #define PLL3ON      28
 #define PLL3RDY     29
 
-#define PLLSRC_HSI  0u
-#define PLLSRC_CSI  1u
-#define PLLSRC_HSE  2u
-
 /* optimized for size */
 static void pll_start_min(volatile unsigned *DIVR, volatile unsigned *FRACR,
         unsigned on_bit, unsigned rdy_bit, unsigned rge_bit,
@@ -57,8 +50,6 @@ static void pll_start_min(volatile unsigned *DIVR, volatile unsigned *FRACR,
         unsigned R, unsigned fref_after_M)
 {
     *RCC_CR &= ~(1u<<on_bit);
-
-    while (*RCC_CR & (1u<<rdy_bit)) {}
 
     unsigned v = *RCC_PLLCKSELR;
     v &= ~((0x3u<<PLLSRC) | (0x3Fu<<divm_bit));
@@ -126,7 +117,7 @@ void pll_3_start(unsigned src, unsigned M, unsigned Nmul, unsigned FRACN,
 }
 
 clock_info_t init_clock(void) {
-    return init_clock_adv(13, 240, 1, 10, 2);
+    return init_clock_adv(13u, 240u, 1u, 10u, 2u, 26000000u);
 }
 
 clock_info_t init_clock_adv (
@@ -134,7 +125,8 @@ clock_info_t init_clock_adv (
         uint32_t N,
         uint32_t P,
         uint32_t Q,
-        uint32_t R
+        uint32_t R,
+        uint32_t HSE
         )
 {
     clock_info_t ci = {0};

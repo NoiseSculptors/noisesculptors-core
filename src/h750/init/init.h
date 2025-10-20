@@ -4,6 +4,10 @@
 
 #include <stdint.h>
 
+#define PLLSRC_HSI  0u
+#define PLLSRC_CSI  1u
+#define PLLSRC_HSE  2u
+
 typedef struct {
     /* Inputs / PLL outputs */
     uint32_t hse_hz;
@@ -30,7 +34,8 @@ clock_info_t init_clock_adv(
         uint32_t N,
         uint32_t P,
         uint32_t Q,
-        uint32_t R
+        uint32_t R,
+        uint32_t HSE
         );
 
 clock_info_t init_clock(void);
