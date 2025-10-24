@@ -51,5 +51,13 @@ void pll_2_start(unsigned src, unsigned M, unsigned Nmul, unsigned FRACN,
 void pll_3_start(unsigned src, unsigned M, unsigned Nmul, unsigned FRACN,
     unsigned P, unsigned Q, unsigned R, unsigned fref_after_M);
 
+void init_dwt(const clock_info_t *ci);
+void dwt_start(void);
+#define dwt_stop dwt_now
+uint32_t dwt_now(void);
+double dwt_cycles_to_s(uint32_t cycles);
+double dwt_cycles_to_ms(uint32_t cycles);
+double dwt_cycles_to_us(uint32_t cycles);
+
 #endif
 

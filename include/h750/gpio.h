@@ -139,6 +139,17 @@
 #define IDR1   1 
 #define IDR0   0 
 
+#define MODER(periph)   ((volatile unsigned int *)(periph + 0x00))
+#define OTYPER(periph)  ((volatile unsigned int *)(periph + 0x04))
+#define OSPEEDR(periph) ((volatile unsigned int *)(periph + 0x08))
+#define PUPDR(periph)   ((volatile unsigned int *)(periph + 0x0c))
+#define IDR(periph)     ((volatile unsigned int *)(periph + 0x10))
+#define ODR(periph)     ((volatile unsigned int *)(periph + 0x14))
+#define BSRR(periph)    ((volatile unsigned int *)(periph + 0x18))
+#define LCKR(periph)    ((volatile unsigned int *)(periph + 0x1c))
+#define AFRL(periph)    ((volatile unsigned int *)(periph + 0x20))
+#define AFRH(periph)    ((volatile unsigned int *)(periph + 0x24))
+
 #define GPIOA_MODER      (volatile unsigned int *)(GPIOA + 0x00)
 #define GPIOA_OTYPER     (volatile unsigned int *)(GPIOA + 0x04)
 #define GPIOA_OSPEEDR    (volatile unsigned int *)(GPIOA + 0x08)

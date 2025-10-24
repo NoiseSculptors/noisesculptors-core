@@ -105,7 +105,7 @@ target_compile_options(noisesculptors_${MCU}
   PUBLIC
     ${CPUFLAGS}
     ${WARN_FLAGS}
-    -O3
+    -Os
     -flto
     -ffunction-sections
     -fdata-sections
