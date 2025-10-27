@@ -30,10 +30,11 @@ double dwt_cycles_to_s(uint32_t cycles)
 
 double dwt_cycles_to_ms(uint32_t cycles)
 {
-    return (double)cycles/((double)sysclk_hz/1000.0);
+    return (double)cycles/((double)sysclk_hz/(double)1000.0);
 }
 
 double dwt_cycles_to_us(uint32_t cycles)
 {
-    return (double)cycles/((double)sysclk_hz/1000000.0);
+    return (double)cycles/((double)sysclk_hz/(double)1000000.0);
 }
+

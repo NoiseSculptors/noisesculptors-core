@@ -2,16 +2,33 @@
 #include <stdint.h>
 #include "vtor.h"
 
-extern uint32_t __StackTop;
-extern uint32_t __VectorTable;
+extern uint32_t __StackTop;          /* DTCM stack top */
 
-extern uint32_t __data_start__;
-extern uint32_t __data_end__;
-extern uint32_t __bss_start__;
-extern uint32_t __bss_end__;
+extern uint32_t __VectorTable;       /* ORIGIN(FLASH) = 0x08000000 */
+                                     /* ORIGIN(AXI)   = 0x24000000 */
+
+extern uint32_t __data_load_start__; /* LMA in FLASH (LOADADDR(.data)) */
+extern uint32_t __data_start__;      /* VMA in DTCM */
+extern uint32_t __data_end__;        /* VMA in DTCM */
+
+extern uint32_t __bss_start__;       /* VMA in DTCM */
+extern uint32_t __bss_end__;         /* VMA in DTCM */
+
+/* ITCM/DTCM specific */
+extern uint32_t __itcm_load__;
+extern uint32_t __itcm_start__;
+extern uint32_t __itcm_end__;
+extern uint32_t __dtcm_data_load__;
+extern uint32_t __dtcm_data_start__;
+extern uint32_t __dtcm_data_end__;
+extern uint32_t __dtcm_bss_start__;
+extern uint32_t __dtcm_bss_end__;
 
 void def_irq_handler(void);
 void Reset_Handler(void);
+
+/* If you use newlib/C++ static constructors, uncomment this: */
+// extern void __libc_init_array(void);
 
 /* Core/IRQ weak aliases (unchanged) */
 void NMI_Handler(void)                         __attribute__ ((weak, alias("def_irq_handler")));
@@ -168,12 +185,20 @@ void IRQ_WKUP_Handler(void)                    __attribute__ ((weak, alias("def_
 
 int main(void);
 
+static inline void copy32(uint32_t *dst, const uint32_t *src, uint32_t *end){
+    while (dst < end) *dst++ = *src++;
+}
+
+static inline void zero32(uint32_t *dst, uint32_t *end){
+    while (dst < end) *dst++ = 0;
+}
+
 /* Default handler to catch unimplemented IRQs */
 void def_irq_handler(void) { while (1); }
 
 void Reset_Handler(void) {
-    /* Program VTOR to point at the AXI-resident vector table.
-       (Vector table itself is linked into .isr_vector at 0x24000000.) */
+    /* Vector table is in FLASH / ;
+       set VTOR (harmless even though reset already used it) */
     *SCB_VTOR = (uint32_t)&__VectorTable;
     __asm volatile ("dsb");
     __asm volatile ("isb");
@@ -184,12 +209,35 @@ void Reset_Handler(void) {
     __asm volatile ("dsb");
     __asm volatile ("isb");
 
-    /* Because we run from SRAM and .data is placed in AXI with no LMA,
-       there is nothing to copy for .data. We ONLY clear .bss. */
-    uint32_t *dst = &__bss_start__;
-    while (dst < &__bss_end__) {
-        *dst++ = 0;
+    /* Copy hot code to ITCM */
+    /* (Optional relocations into TCMs, only if sections exist) */
+    if (&__itcm_start__ && &__itcm_end__ && &__itcm_load__ &&
+        (&__itcm_start__ != &__itcm_end__)) {
+        copy32(&__itcm_start__, &__itcm_load__, &__itcm_end__);
     }
+
+    /* Copy regular .data (in DTCM for flash-boot builds) */
+    copy32(&__data_start__, &__data_load_start__, &__data_end__);
+
+    /* Copy extra initialized fast data to DTCM if a dedicated .dtcm_data
+       section is used */
+    if (&__dtcm_data_start__ && &__dtcm_data_end__ && &__dtcm_data_load__ &&
+        (&__dtcm_data_start__ != &__dtcm_data_end__)) {
+        copy32(&__dtcm_data_start__, &__dtcm_data_load__, &__dtcm_data_end__);
+    }
+
+    /* Zero .bss */
+    zero32(&__bss_start__, &__bss_end__);
+
+    /* Zero dedicated DTCM BSS (fast buffers) if present */
+    if (&__dtcm_bss_start__ && &__dtcm_bss_end__ &&
+        (&__dtcm_bss_start__ != &__dtcm_bss_end__)) {
+        zero32(&__dtcm_bss_start__, &__dtcm_bss_end__);
+    }
+
+    /* If using C++/newlib init arrays, uncomment: */
+    // __libc_init_array(); /* enables .preinit_array/.init_array/.fini_array */
+
 
     /* Jump to main */
     (void)main();
@@ -198,28 +246,25 @@ void Reset_Handler(void) {
     while (1) {;}
 }
 
-/* Vector table — placed at start of AXI SRAM by the linker script */
+/* Vector table — linked into FLASH by the linker script */
 __attribute__((section(".isr_vector")))
 __attribute__((used, aligned(128)))
 void (* const vector_table[])(void) = {
-    (void (*)(void))(&__StackTop), /* Initial MSP (address value) */
+    (void (*)(void))(&__StackTop), /* Initial MSP (address value in DTCM) */
     Reset_Handler,                 /* Reset Handler */
     NMI_Handler,                   /* NMI Handler */
     HardFault_Handler,             /* Hard Fault Handler */
     MemManage_Handler,             /* MPU Fault Handler */
     BusFault_Handler,              /* Bus Fault Handler */
     UsageFault_Handler,            /* Usage Fault Handler */
-    0,                             /* Reserved */
-    0,                             /* Reserved */
-    0,                             /* Reserved */
-    0,                             /* Reserved */
+    0, 0, 0, 0,                    /* Reserved */
     SVC_Handler,                   /* SVCall Handler */
     DebugMon_Handler,              /* Debug Monitor Handler */
     0,                             /* Reserved */
     PendSV_Handler,                /* PendSV Handler */
     SysTick_Handler,               /* SysTick Handler */
 
-    /* External IRQs — your list follows unchanged */
+    /* External IRQs — unchanged list */
     IRQ_WWDG1_Handler,
     IRQ_PVD_PVM_Handler,
     IRQ_RTC_TAMP_STAMP_CSS_LSE_Handler,
