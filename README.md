@@ -35,7 +35,7 @@ Each supported MCU family has its own subfolder (e.g. `h750/`, `l431/`).
 ## Building
 
 ```bash
-cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=cmake/arm-none-eabi-gcc.cmake -DMCU=h750 -DRUN=axi
+cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=cmake/arm-none-eabi-gcc.cmake -DPART=h750 -DRUN=axi
 cmake --build build
 ```
 
