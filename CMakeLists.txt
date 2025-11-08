@@ -5,66 +5,103 @@ project(noisesculptors_core C ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 
-# ---- knobs --------------------------------------------------
-set(BOARD ""     CACHE STRING "Board name (maps to an MCU); leave empty to set MCU directly")
-set(MCU   "h750" CACHE STRING "Target MCU (one of: h750, l431)")
-set(RUN   "axi"  CACHE STRING "Run profile: flash | axi | dtcm")
-set(MPU   "${MCU}" CACHE STRING "Alias for MCU used by include layout")
+# -----------------------------------------------------------------------------
+# Public knobs consumed from the top-level (keep them as CACHE so they're visible)
+# -----------------------------------------------------------------------------
+set(PART ""    CACHE STRING "Exact MCU part (e.g. g030, g070, l431, h750)")
+set(RUN  ""    CACHE STRING "Run profile for the chosen family (flash|sram|axi)")
+# MPU is an include-layout alias; default to the MCU family (set below)
+set(MPU  ""    CACHE STRING "Alias used by include layout; defaults to MCU family")
 
-# ---- BOARD → MCU map + guards --------------------------------
-set(VALID_MCUS h750 l431)
-set(_BOARD_TO_MCU_calibrator750     h750)
-set(_BOARD_TO_MCU_rocket_calibrator h750)
-set(_BOARD_TO_MCU_herztick          l431)
-
-if(NOT "${BOARD}" STREQUAL "")
-  set(_map_var "_BOARD_TO_MCU_${BOARD}")
-  if(NOT DEFINED ${_map_var})
-    message(FATAL_ERROR "Unknown BOARD='${BOARD}'. Add mapping for it.")
-  endif()
-  set(MCU "${${_map_var}}" CACHE STRING "MCU derived from BOARD='${BOARD}'" FORCE)
+if(PART STREQUAL "")
+  message(FATAL_ERROR "Set -DPART=<g030|g070|l431|h750|...> at configure time")
 endif()
 
-list(FIND VALID_MCUS "${MCU}" _mcuidx)
-if(_mcuidx EQUAL -1)
-  message(FATAL_ERROR "MCU '${MCU}' not in [${VALID_MCUS}]")
-endif()
-
-if("${MPU}" STREQUAL "")
-  set(MPU "${MCU}" CACHE STRING "Alias for MCU used by include layout" FORCE)
-endif()
-
-# ---- per-MCU flags -------------------------------------------
-if(MCU STREQUAL "h750")
-  set(ARCH_FLAGS -mthumb -mcpu=cortex-m7)
-  set(FPU_FLAGS  -mfpu=fpv5-d16 -mfloat-abi=hard -fsingle-precision-constant)
-elseif(MCU STREQUAL "l431")
+# -----------------------------------------------------------------------------
+# PART -> MCU family (folder) + arch flags
+#   * g030/g070/... -> MCU=g0x0
+#   * l431 -> MCU=l431
+#   * h750 -> MCU=h750
+# -----------------------------------------------------------------------------
+string(TOLOWER "${PART}" _part_lc)
+if(_part_lc MATCHES "^g0[0-9][0-9]$")
+  set(MCU "g0x0")
+  set(ARCH_FLAGS -mthumb -mcpu=cortex-m0plus)
+  set(VALID_RUNS flash sram)
+elseif(_part_lc STREQUAL "l432")
+  set(MCU "l431")
   set(ARCH_FLAGS -mthumb -mcpu=cortex-m4)
-  set(FPU_FLAGS  )
+  # L431 has single-precision FPU
+  set(FPU_FLAGS  -mfpu=fpv4-sp-d16 -mfloat-abi=hard -fsingle-precision-constant)
+  set(VALID_RUNS flash sram)
+elseif(_part_lc STREQUAL "h750")
+  set(MCU "h750")
+  set(ARCH_FLAGS -mthumb -mcpu=cortex-m7)
+  set(FPU_FLAGS  -mfpu=fpv5-sp-d16 -mfloat-abi=hard -fsingle-precision-constant)
+  set(VALID_RUNS flash axi)
+else()
+  message(FATAL_ERROR "Unknown PART='${PART}' -> cannot deduce MCU family")
 endif()
+
+# Default MPU alias to MCU unless explicitly set
+if(MPU STREQUAL "")
+  set(MPU "${MCU}" CACHE STRING "Alias for include layout" FORCE)
+endif()
+
+# Validate RUN choice for the family
+list(FIND VALID_RUNS "${RUN}" _rid)
+if(_rid EQUAL -1)
+  message(FATAL_ERROR "RUN='${RUN}' invalid for PART='${PART}' (family ${MCU}). Valid: [${VALID_RUNS}]")
+endif()
+
 set(CPUFLAGS ${ARCH_FLAGS} ${FPU_FLAGS})
 
-# ---- RUN profile → startup, linker, defines -------------------
-set(STARTUP startup/${MCU}/startup.c)
-if(RUN STREQUAL "flash")
-  set(LINKER  ldscripts/${MCU}/linker_flash.ld)
-  set(PROFILE_DEFS RUN_FROM_FLASH)
-elseif(RUN STREQUAL "axi")
-  set(LINKER  ldscripts/${MCU}/linker_axi.ld)
-  set(PROFILE_DEFS RUN_AXI)
-else()
-  message(FATAL_ERROR "RUN must be one of: flash, axi, dtcm (got '${RUN}')")
+# -----------------------------------------------------------------------------
+# Linker + Memory map
+#   Layout/linker is per-family: ldscripts/<MCU>/linker_<RUN>.ld
+#   Memory map is per-part:      ldscripts/<MCU>/memory_map_<PART>.ld
+# -----------------------------------------------------------------------------
+set(_LD_DIR   ${CMAKE_CURRENT_SOURCE_DIR}/ldscripts/${MCU})
+set(_LDS_FILE ${_LD_DIR}/linker_${RUN}.ld)
+
+# Pass explicit memory map for this PART if it exists
+set(MEMMAP "${CMAKE_CURRENT_SOURCE_DIR}/ldscripts/${MCU}/memory_map_${PART}.ld")
+if(EXISTS "${MEMMAP}")
+  set(LINKER_DEFS -Wl,-T${MEMMAP})
 endif()
 
-# ---- source discovery ----------------------------------------
+# Allow either memory_map_<part>.ld or memory_map_<PART>.ld (case-insensitive)
+set(_MEM_CANDIDATES
+  ${_LD_DIR}/memory_map_${_part_lc}.ld
+  ${_LD_DIR}/memory_map_${PART}.ld
+)
+set(_MEM_FILE "")
+foreach(_c IN LISTS _MEM_CANDIDATES)
+  if(EXISTS "${_c}")
+    set(_MEM_FILE "${_c}")
+    break()
+  endif()
+endforeach()
+if(_MEM_FILE STREQUAL "")
+  message(FATAL_ERROR "Missing per-part memory map for PART='${PART}' under ${_LD_DIR} (expected memory_map_${_part_lc}.ld)")
+endif()
+
+# -----------------------------------------------------------------------------
+# Source discovery
+# -----------------------------------------------------------------------------
+set(STARTUP startup/${MCU}/startup.c)
+
 file(GLOB_RECURSE SRCS_MCU
   CONFIGURE_DEPENDS
   ${CMAKE_CURRENT_SOURCE_DIR}/src/${MCU}/*.c
 )
 set(CORE_SRCS ${SRCS_MCU} ${CMAKE_CURRENT_SOURCE_DIR}/${STARTUP})
 
-# ---- include paths -------------------------------------------
+# -----------------------------------------------------------------------------
+# Include paths
+# -----------------------------------------------------------------------------
 set(PUBLIC_INC
   ${CMAKE_CURRENT_SOURCE_DIR}/include
   ${CMAKE_CURRENT_SOURCE_DIR}/include/${MPU}
@@ -79,7 +116,9 @@ foreach(_p IN LISTS MCU_INC_DIRS)
 endforeach()
 list(INSERT MCU_INC_DIRS 0 ${MCU_SRC_DIR})
 
-# ---- OBJECT "core" -------------------------------------------
+# -----------------------------------------------------------------------------
+# OBJECT "core"
+# -----------------------------------------------------------------------------
 add_library(noisesculptors_${MCU} OBJECT ${CORE_SRCS})
 add_library(noisesculptors::core ALIAS noisesculptors_${MCU})
 
@@ -95,19 +134,17 @@ set(WARN_FLAGS
   -Wpointer-arith -Wcast-align -Wwrite-strings -Wstrict-overflow
 )
 
-# Compile options for these objects; export the same to consumers
 target_compile_options(noisesculptors_${MCU}
   PUBLIC
     ${CPUFLAGS}
     ${WARN_FLAGS}
-    -Os
+    -O3
     -flto
     -ffunction-sections
     -fdata-sections
     -fno-builtin
 )
 
-# Link-time LTO for final firmware consumers
 target_link_options(noisesculptors_${MCU}
   PUBLIC
     -flto
@@ -121,10 +158,18 @@ target_compile_definitions(noisesculptors_${MCU}
     __START=main
     __NO_SYSTEM_INIT
   PUBLIC
-    ${PROFILE_DEFS}
+    $<$<STREQUAL:${RUN},flash>:RUN_FROM_FLASH>
+    $<$<STREQUAL:${RUN},axi>:RUN_AXI>
+    $<$<STREQUAL:${RUN},sram>:RUN_SRAM>
 )
 
-# Expose absolute linker script path as a property on the target
-set(_LDS_ABS "${CMAKE_CURRENT_SOURCE_DIR}/${LINKER}")
-set_property(TARGET noisesculptors_${MCU} PROPERTY NOISESCULPTORS_LDSCRIPT "${_LDS_ABS}")
+add_subdirectory(startup/common)
+
+# -----------------------------------------------------------------------------
+# Export absolute paths so apps can link with two -T scripts (memmap first)
+# -----------------------------------------------------------------------------
+set_property(TARGET noisesculptors_${MCU}
+  PROPERTY NOISESCULPTORS_LDSCRIPT "${_LDS_FILE}")
+set_property(TARGET noisesculptors_${MCU}
+  PROPERTY NOISESCULPTORS_MEMMAP  "${_MEM_FILE}")
 

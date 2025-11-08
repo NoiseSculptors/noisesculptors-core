@@ -1,15 +1,15 @@
 
-/* program executes from Flash (0x08000000), data+stack in DTCM */
+/* program executes from Flash (0x08000000), data+stack in SRAM */
 ENTRY(Reset_Handler)
 
-/* Stack in DTCM */
-_estack = ORIGIN(DTCM) + LENGTH(DTCM);
+/* Stack in SRAM */
+_estack = ORIGIN(SRAM) + LENGTH(SRAM);
 PROVIDE(__StackTop   = _estack);
-PROVIDE(__StackLimit = ORIGIN(DTCM));
+PROVIDE(__StackLimit = ORIGIN(SRAM));
 
 SECTIONS
 {
-  /* Vector table must be at Flash base so bootloader can find it */
+  /* Vector table must be at Flash base so the boot ROM finds it */
   .isr_vector ORIGIN(FLASH) :
   {
     . = ALIGN(128);
@@ -23,13 +23,20 @@ SECTIONS
     . = ALIGN(8);
     *(.text*)
     *(.glue_7*) *(.glue_7t*)
-    *(.init) *(.fini)
+
+    KEEP(*(.init))
+    KEEP(*(.fini))
+
     *(.rodata*)
+
+    /* Unwind info (if enabled) */
     *(.ARM.extab* .gnu.linkonce.armextab.*)
     *(.ARM.exidx*)
+
     . = ALIGN(8);
   } > FLASH
 
+  /* C++ static ctor/dtor arrays (if used) */
   .preinit_array :
   {
     . = ALIGN(8);
@@ -56,9 +63,7 @@ SECTIONS
     PROVIDE_HIDDEN(__fini_array_end = .);
   } > FLASH
 
-  /* Initialized data section:
-     LMA = Flash (load), VMA = DTCM (run)
-     The startup code will copy it. */
+  /* Initialized data: VMA in SRAM, LMA in FLASH. Startup copies it. */
   .data :
   {
     . = ALIGN(8);
@@ -66,9 +71,9 @@ SECTIONS
     *(.data*)
     __data_end__ = .;
     . = ALIGN(8);
-  } > DTCM AT > FLASH
+  } > SRAM AT > FLASH
 
-  /* Define copy source (LMA) symbol for startup */
+  /* Copy source for .data */
   __data_load_start__ = LOADADDR(.data);
 
   /* Zero-init */
@@ -79,42 +84,10 @@ SECTIONS
     *(.bss*) *(COMMON)
     __bss_end__ = .;
     . = ALIGN(8);
-  } > DTCM
+  } > SRAM
 
-  /* Optional heap (can place in AXI if large buffers needed) */
-  PROVIDE(__heap_start__ = ORIGIN(AXI));
-
-  /* Any function tagged section(".itcm") will land here. */
-  .itcm :
-  {
-    . = ALIGN(16);
-    __itcm_start__ = .;
-    *(.itcm) *(.itcm.*)
-    __itcm_end__ = .;
-    . = ALIGN(16);
-  } > ITCM AT > FLASH
-  __itcm_load__ = LOADADDR(.itcm);
-
-  /* For initialized variables placed with section(".dtcm_data") */
-  .dtcm_data :
-  {
-    . = ALIGN(8);
-    __dtcm_data_start__ = .;
-    *(.dtcm_data) *(.dtcm_data.*)
-    __dtcm_data_end__ = .;
-    . = ALIGN(8);
-  } > DTCM AT > FLASH
-  __dtcm_data_load__ = LOADADDR(.dtcm_data);
-
-  /* For zero-init variables placed with section(".dtcm_bss") */
-  .dtcm_bss (NOLOAD) :
-  {
-    . = ALIGN(8);
-    __dtcm_bss_start__ = .;
-    *(.dtcm_bss) *(.dtcm_bss.*)
-    __dtcm_bss_end__ = .;
-    . = ALIGN(8);
-  } > DTCM
+  /* Heap starts after BSS by default */
+  PROVIDE(__heap_start__ = .);
 }
 
 /* Symbols used by startup */

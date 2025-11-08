@@ -210,9 +210,8 @@ void Reset_Handler(void) {
     __asm volatile ("isb");
 
     /* Copy hot code to ITCM */
-    /* (Optional relocations into TCMs, only if sections exist) */
-    if (&__itcm_start__ && &__itcm_end__ && &__itcm_load__ &&
-        (&__itcm_start__ != &__itcm_end__)) {
+    /* (Optional relocations into TCMs — only if section is non-empty) */
+    if (&__itcm_start__ != &__itcm_end__) {
         copy32(&__itcm_start__, &__itcm_load__, &__itcm_end__);
     }
 
@@ -221,8 +220,7 @@ void Reset_Handler(void) {
 
     /* Copy extra initialized fast data to DTCM if a dedicated .dtcm_data
        section is used */
-    if (&__dtcm_data_start__ && &__dtcm_data_end__ && &__dtcm_data_load__ &&
-        (&__dtcm_data_start__ != &__dtcm_data_end__)) {
+    if (&__dtcm_data_start__ != &__dtcm_data_end__) {
         copy32(&__dtcm_data_start__, &__dtcm_data_load__, &__dtcm_data_end__);
     }
 
@@ -230,8 +228,7 @@ void Reset_Handler(void) {
     zero32(&__bss_start__, &__bss_end__);
 
     /* Zero dedicated DTCM BSS (fast buffers) if present */
-    if (&__dtcm_bss_start__ && &__dtcm_bss_end__ &&
-        (&__dtcm_bss_start__ != &__dtcm_bss_end__)) {
+    if (&__dtcm_bss_start__ != &__dtcm_bss_end__) {
         zero32(&__dtcm_bss_start__, &__dtcm_bss_end__);
     }
 

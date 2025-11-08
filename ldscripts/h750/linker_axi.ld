@@ -2,8 +2,6 @@
 /* run entirely from AXI SRAM, stack in DTCM */
 ENTRY(Reset_Handler)
 
-INCLUDE memory_map.ld
-
 /* Stack at top of DTCM */
 _estack = ORIGIN(DTCM) + LENGTH(DTCM);
 PROVIDE(__StackTop = _estack);

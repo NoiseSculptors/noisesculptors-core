@@ -1,44 +1,39 @@
 
 #include "delay.h"
+#include "init.h"
+#include "timer.h"
 #include <stdint.h>
 
-/*
-   warning:
-   VERY basic, NOT completely accurate!!!
- */
+extern const clock_info_t ci;
 
-void tiny_delay(uint32_t n);
+/* use delay_ms instead of delay_us
+   for values over 1000us as it is more accurate */
 
-__attribute__((optimize(0)))
 void delay_ms(uint32_t ms)
 {
-    while(ms--)
-        tiny_delay(10000);
-    
+    uint32_t ctr = ms * 10;
+    uint32_t ref = (ci.sysclk_hz / 2 / 10000)-22;
+    *TIM6_PSC = 0;
+    *TIM6_CR1 = 1;
+    *TIM6_CNT = 0;
+    while(ctr--){
+        *TIM6_CNT = 0;
+        while(*TIM6_CNT < ref){}
+    }
+    *TIM6_CR1 = 0;
 }
 
-__attribute__((optimize(0)))
 void delay_us(uint32_t us)
 {
-    switch(us){
-        case(1):
-            for(int i=0;i<18;i++)
-                __asm__ volatile("nop");
-            break;
-        case(2):
-            for(int i=0;i<110;i++)
-                __asm__ volatile("nop");
-            break;
-        default:
-            while(us--){
-                for(int i=0;i<56;i++)
-                    __asm__ volatile("nop");
-            }
-            break;
+    uint32_t ctr = us;
+    uint32_t ref = (ci.sysclk_hz / 2 / 1000000)-21;
+    *TIM6_PSC = 0;
+    *TIM6_CR1 = 1;
+    *TIM6_CNT = 0;
+    while(ctr--){
+        *TIM6_CNT = 0;
+        while(*TIM6_CNT < ref){}
     }
+    *TIM6_CR1 = 0;
 }
 
-void tiny_delay(uint32_t n)
-{
-    for (volatile unsigned i=0; i<n; i++) __asm__ volatile("nop");
-}

@@ -4,6 +4,7 @@
 #include "flash.h"
 #include "syscfg.h"
 #include "init.h"
+#include "timer.h"
 #include "vtor.h"
 #include <stdint.h>
 
@@ -41,7 +42,9 @@
 #define PLL3ON      28
 #define PLL3RDY     29
 
-/* optimized for size */
+
+clock_info_t ci;
+
 static void pll_start_min(volatile unsigned *DIVR, volatile unsigned *FRACR,
         unsigned on_bit, unsigned rdy_bit, unsigned rge_bit,
         unsigned vcosel_bit, unsigned fracen_bit, unsigned divpen,
@@ -129,8 +132,9 @@ clock_info_t init_clock_adv (
         uint32_t HSE
         )
 {
-    clock_info_t ci = {0};
 
+#define TIM6EN 4
+    *RCC_APB1LENR |= (1<<TIM6EN); /* TIM6 used for delay functions */
     /*  Power / voltage scaling to VOS0 (overdrive)  */
     #define SCUEN       2
     #define LDOEN       1

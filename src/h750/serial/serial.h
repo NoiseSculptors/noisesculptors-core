@@ -38,10 +38,11 @@ Define only one:
 */
 
 /* for example 
-#define USART1_PA10_RX_PA9_TX
+#define USART3_PB11_RX_PB10_TX
 */
 
-#define USART3_PB11_RX_PB10_TX
+#define USART1_PA10_RX_PA9_TX
+
 
 void init_serial(const clock_info_t *, unsigned baud);
 void serial_write_char(int c);

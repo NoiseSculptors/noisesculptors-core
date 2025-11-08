@@ -1,4 +1,5 @@
 
+#include "delay.h"
 #include "dwt.h"
 #include "init.h"
 #include <stdint.h>
@@ -9,6 +10,8 @@ static uint32_t sysclk_hz; /* cached CPU clock (Hz) */
 void init_dwt(const clock_info_t *ci)
 {
     sysclk_hz = ci->sysclk_hz;
+
+    *DWT_CYCCNT = 0;
     *DEMCR |= (1u << 24);  /* enable trace and debug block */
     *DWT_CTRL  |= 1u;      /* enable cycle counter */
 }
