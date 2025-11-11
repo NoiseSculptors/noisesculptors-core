@@ -37,7 +37,7 @@ target_compile_definitions(${TRAMP_NAME} PRIVATE
 )
 
 target_link_options(${TRAMP_NAME} PRIVATE
-  -T${CMAKE_SOURCE_DIR}/ldscripts/${MCU}/linker_flash.ld
+    -T${_LD_DIR}/linker_flash.ld
   ${LINKER_DEFS}
   -nostartfiles
   -Wl,--gc-sections

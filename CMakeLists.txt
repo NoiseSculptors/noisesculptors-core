@@ -63,7 +63,7 @@ set(CPUFLAGS ${ARCH_FLAGS} ${FPU_FLAGS})
 #   Layout/linker is per-family: ldscripts/<MCU>/linker_<RUN>.ld
 #   Memory map is per-part:      ldscripts/<MCU>/memory_map_<PART>.ld
 # -----------------------------------------------------------------------------
-set(_LD_DIR   ${CMAKE_CURRENT_SOURCE_DIR}/ldscripts/${MCU})
+set(_LD_DIR   ${CMAKE_CURRENT_SOURCE_DIR}/ldscripts/${MCU} CACHE PATH "Linker part dir")
 set(_LDS_FILE ${_LD_DIR}/linker_${RUN}.ld)
 
 # Pass explicit memory map for this PART if it exists
