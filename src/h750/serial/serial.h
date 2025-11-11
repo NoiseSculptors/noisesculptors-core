@@ -1,3 +1,4 @@
+
 #ifndef SERIAL_H
 #define SERIAL_H
 
@@ -10,45 +11,9 @@ PE7  QUADSPI_BK2_IO0
 PE8  QUADSPI_BK2_IO1
 
 Used on Rocket Calibrator prototype
-#define USART3_PB11_RX_PB10_TX ... RX TX 3V3 GND
-
-Define only one:
-#define LPUART1_PA10_RX_PA9_TX
-#define LPUART1_PB7_RX_PB6_TX
-#define UART4_PA1_RX_PA0_TX
-#define UART4_PB8_RX_PB9_TX
-#define UART4_PC11_RX_PC10_TX
-#define UART4_PD0_RX_PD1_TX
-#define UART5_PB12_RX_PB13_TX
-#define UART5_PB5_RX_PB6_TX
-#define UART5_PD2_RX_PC12_TX
-#define UART7_PB3_RX_PB4_TX
-#define UART7_PE7_RX_PE8_TX
-#define UART7_PA8_RX_PA15_TX
-#define UART8_PE0_RX_PE1_TX
-#define USART1_PA10_RX_PA9_TX
-#define USART1_PB15_RX_PB14_TX
-#define USART1_PB7_RX_PB6_TX
-#define USART2_PA3_RX_PA2_TX
-#define USART2_PD6_RX_PD5_TX
-#define USART3_PB11_RX_PB10_TX
-#define USART3_PC11_RX_PC10_TX
-#define USART3_PD9_RX_PD8_TX
-#define USART6_PC7_RX_PC6_TX
+USART3 PB11_RX PB10_TX ... RX TX 3V3 GND
 */
 
-/* for example 
-#define USART3_PB11_RX_PB10_TX
-*/
-
-#define USART1_PA10_RX_PA9_TX
-
-
-void init_serial(const clock_info_t *, unsigned baud);
-void serial_write_char(int c);
-int serial_read_char(void);
-
-/* if you use more than one */
 void init_lpuart1_pa10_pa9(const clock_info_t *, unsigned);
 void init_lpuart1_pb7_pb6(const clock_info_t *, unsigned);
 void init_uart4_pa1_pa0(const clock_info_t *, unsigned);
@@ -93,3 +58,4 @@ int usart3_read_char(void);
 int usart6_read_char(void);
 
 #endif
+
