@@ -1,6 +1,7 @@
 #ifndef MEMORY_H
 #define MEMORY_H
 
+#define NVIC                0xE000E100U
 #define RAMECC3             0x58027000U
 #define HSEM                0x58026400U
 #define ADC3                0x58026000U
