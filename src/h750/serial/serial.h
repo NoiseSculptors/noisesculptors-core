@@ -3,6 +3,7 @@
 #define SERIAL_H
 
 #include "init.h"
+#include <stddef.h>
 
 /*
 Used by qspi on Calibrator750 so choose some other pair:
