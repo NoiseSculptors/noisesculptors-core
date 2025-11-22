@@ -207,7 +207,7 @@ clock_info_t init_clock_adv (
 
     ci.sysclk_hz        = ci.pll1_p_hz;
 
-    /* HPRE=/2 → HCLK */
+    /* HPRE=/2 -> HCLK */
     ci.hclk_hz          = ci.sysclk_hz / 2u;
 
     /* APB prescalers all /2 here */

@@ -3,8 +3,7 @@
 
 #include "init.h"
 
-void init_dwt(const clock_info_t *ci);
-
+void init_dwt(void);
 void dwt_start(void);
 #define dwt_stop dwt_now
 uint32_t dwt_now(void);

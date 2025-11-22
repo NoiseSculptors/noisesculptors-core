@@ -1,8 +1,13 @@
 #ifndef QSPI_H
 #define QSPI_H
 
+#include "memory.h"
 #include <stddef.h>
 
+void init_qspi(uint8_t prescaler);
+void qspi_memory_map_mode(void);
+
+#if 0
 void init_qspi_bk2(unsigned prescaler);
 int qspi_bk2_read(uint32_t addr, void *buf, size_t len);
 int qspi_bk2_prog(uint32_t addr, const void *buf, size_t len);
@@ -16,6 +21,7 @@ int qspi_bk2_erase_chip(void);
 uint32_t qspi_bk2_chunk128k_base(unsigned index);
 /*  Optional: enable memory-mapped read/XIP from BK2 at 0x9000_0000          */
 void qspi_bk2_enable_mmap_read(void);
+#endif
 
 #define QUADSPI_CR      (volatile unsigned int *)(QUADSPI + 0x00)
 #define QUADSPI_DCR     (volatile unsigned int *)(QUADSPI + 0x04)
