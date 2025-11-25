@@ -1,24 +1,72 @@
 
 #include "delay.h"
 #include "gpio.h"
+#include "init.h"
 #include "qspi.h"
 #include "rcc.h"
 #include <stdint.h>
 
+static uint8_t pll2_enabled = 0;
+
+/* https://www.st.com/resource/en/errata_sheet/es0445-stm32h745xig-stm32h755xi-stm32h747xig-stm32h757xi-device-errata-stmicroelectronics.pdf */
+
+/* The code below have to be executed upon reset and upon switching from
+ * memory-mapped to any other mode */
+void qspi_st_workaround(void)
+{
+    // Save QSPI_CR and QSPI_CCR values if necessary
+    *QUADSPI_CR = 0; // ensure that prescaling factor is not at maximum, and
+                       // disable the perip heral
+    while(*QUADSPI_SR & 0x20){}; // wait for BUSY flag to fall if not already low
+    *QUADSPI_CR = 0xFF000001; // set maximum prescaling factor, and enable
+                                // the peripheral
+    *QUADSPI_CCR = 0x20000000; // activate the free-running clock
+    *QUADSPI_CCR = 0x20000000; // repeat the previous instruction to prevent
+                                 // a back-to-back disable
+    // The following command must complete less than 127 kernel clocks after
+    // the first write to the QSPI_CCR register
+    *QUADSPI_CR = 0; // disable QSPI
+    while(*QUADSPI_SR & 0x20){}; // wait for busy to fall
+    // Restore CR and CCR values if necessary
+}
+
+static void qspi_send_instruction(uint8_t instruction)
+{
+    *QUADSPI_CCR =
+            (0x4u<<18)    // 22:18 DCYC    no of dummy cycles 
+           |(0x2u<<12)    // 13:12 ADSIZE  address size (2: 24bit)
+           |(0x1u<<8)     // 9:8   IMODE   instruction mode
+           |instruction;  // 7:0
+
+    while(*QUADSPI_SR & (1<<5)) // BUSY
+        __asm__("nop");
+}
+
 void init_qspi(uint8_t prescaler)
 {
+    qspi_st_workaround();
+
+    *RCC_CR &= ~(1<<26); /* erase PLL2ON */
+
+    /* QSPISEL clock source:
+        0:rcc_hclk3 (default)
+        1:pll1_q_ck
+        2:pll2_r_ck
+        3:per_ck */
+    *RCC_D1CCIPR &= ~(3u<<4);
+
+    if(pll2_enabled){
+        /* pll2 to 208MHz */
+        pll_2_start(PLLSRC_HSE, 2, 16, 0u, 104, 104, 1, 26000000u);
+        *RCC_D1CCIPR |= (2u<<4);
+    }
+
     *RCC_AHB4ENR |= (0x1u<<GPIOBEN) | (0x1u<<GPIOCEN) | (0x1u<<GPIOEEN);
 
-    *RCC_AHB3ENR &= ~(0x1u << 14); // QSPIEN
-
-    delay_ms(1);
-
-    /* QSPISEL clock source: 0:rcc_hclk3 (default) 1:pll1_q_ck l 2:...  3:... */
-    *RCC_D1CCIPR &= ~(3u<<4);
-//  *RCC_D1CCIPR |= (1u<<4); /* enable for pll1_q_ck */ 
     *RCC_AHB3ENR |= (0x1u << 14); // QSPIEN
 
-    delay_ms(1);
+    while(*QUADSPI_SR & (1<<5)) // BUSY
+        __asm__("nop");
 
     /*
     PB2   QSPI_CLK  AF9
@@ -54,7 +102,7 @@ void init_qspi(uint8_t prescaler)
       | (0x7u<<8)  // 10:8  CSHT    chip select high time
       | (0x1u<<0); // 0     CKMODE  1 CLK stays high while NCS high (mode 3)
 
-    *QUADSPI_CR |=
+    *QUADSPI_CR =
       (prescaler<<24) // 31:24 PRESCALER clock prescaler 
            |(0x7u<<8) // 12:8  FTHRES FIFO threshold flag setting
                       //       level for in indirect mode 
@@ -67,15 +115,14 @@ void init_qspi(uint8_t prescaler)
            |(0x1u<<0);//  0    EN QUADSPI enabled 
 
     /* switch the flash chip from SPI mode to QPI mode */
-    *QUADSPI_CCR =
-            (0x4u<<18)  // 22:18 DCYC    no of dummy cycles 
-           |(0x2u<<12)  // 13:12 ADSIZE  address size (2: 24bit)
-           |(0x1u<<8)   // 9:8   IMODE   instruction mode
-           |(0x38<<0);  // 7:0   instruction: 0x38 Enter QPI Mode
+    qspi_send_instruction(0x38); // 0x38 Enter QPI Mode
 
-    while(*QUADSPI_SR & (1<<5)) // BUSY
-        __asm__("nop");
+}
 
+void init_qspi_pll2_clock_source_qspi_104MHz(void)
+{
+    pll2_enabled = 1;
+    init_qspi(1); /* prescaler 1, 208MHz/2 = 104MHz */
 }
 
 void qspi_memory_map_mode(void)

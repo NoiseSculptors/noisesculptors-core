@@ -5,6 +5,7 @@
 #include <stddef.h>
 
 void init_qspi(uint8_t prescaler);
+void init_qspi_pll2_clock_source_qspi_104MHz(void);
 void qspi_memory_map_mode(void);
 
 #if 0
