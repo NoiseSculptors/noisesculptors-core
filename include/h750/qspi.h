@@ -1,3 +1,4 @@
+
 #ifndef QSPI_H
 #define QSPI_H
 
@@ -5,24 +6,12 @@
 #include <stddef.h>
 
 void init_qspi(uint8_t prescaler);
-void init_qspi_pll2_clock_source_qspi_104MHz(void);
+void init_qspi_80MHz(void);
+void init_qspi_pll2(uint8_t prescaler);
+void init_qspi_pll2_104MHz(void);
 void qspi_memory_map_mode(void);
-
-#if 0
-void init_qspi_bk2(unsigned prescaler);
-int qspi_bk2_read(uint32_t addr, void *buf, size_t len);
-int qspi_bk2_prog(uint32_t addr, const void *buf, size_t len);
-int qspi_bk2_erase_sector_4k(uint32_t addr);
-int qspi_read_jedec_id(uint8_t id[3]);
-/* Optional: erase 64K block if your flash supports it */
-int qspi_bk2_erase_block_64k(uint32_t addr);
-/* Optional: full chip erase – be careful with this :) */
-int qspi_bk2_erase_chip(void);
-/* Convenience: get base offset of N-th 128KiB chunk */
-uint32_t qspi_bk2_chunk128k_base(unsigned index);
-/*  Optional: enable memory-mapped read/XIP from BK2 at 0x9000_0000          */
-void qspi_bk2_enable_mmap_read(void);
-#endif
+int32_t qspi_read(uint32_t addr, void *buf, size_t len);
+void qspi_write_flash_qpi(uint32_t addr, const uint32_t *src, uint32_t size);
 
 #define QUADSPI_CR      (volatile unsigned int *)(QUADSPI + 0x00)
 #define QUADSPI_DCR     (volatile unsigned int *)(QUADSPI + 0x04)
@@ -39,3 +28,4 @@ void qspi_bk2_enable_mmap_read(void);
 #define QUADSPI_LPTR    (volatile unsigned int *)(QUADSPI + 0x30)
 
 #endif
+
