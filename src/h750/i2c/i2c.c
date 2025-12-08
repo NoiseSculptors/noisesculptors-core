@@ -12,7 +12,7 @@ static void i2c_timingr(uint32_t periph, uint32_t apb_freq, uint32_t i2c_speed) 
 
 /* very fast, just for testing */
 
-#define PRESC_VAL   0x1     /* timing prescaler */
+#define PRESC_VAL   0x4     /* timing prescaler, test 1-4 */
 #define SCLDEL_VAL  0x0     /* data setup time */
 #define SDADEL_VAL  0x0     /* data hold time */
 #define SCLH_VAL    0x01    /* SCL high period */
