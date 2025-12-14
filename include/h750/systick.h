@@ -16,4 +16,6 @@
 #define SYST_CVR     (volatile unsigned int *)(0xE000E018)
 #define SYST_CALIB   (volatile unsigned int *)(0xE000E01C)
 
+void init_systick_1ms(void);
+
 #endif
