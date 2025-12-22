@@ -1,6 +1,8 @@
 #ifndef SDMMC_h
 #define SDMMC_h
 
+#include "memory.h"
+
 #define SDMMC1_POWER       (volatile unsigned int *)(SDMMC1 + 0x00u)
 #define SDMMC1_CLKCR       (volatile unsigned int *)(SDMMC1 + 0x04u)
 #define SDMMC1_ARGR        (volatile unsigned int *)(SDMMC1 + 0x08u)
