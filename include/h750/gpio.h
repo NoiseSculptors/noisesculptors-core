@@ -5,6 +5,77 @@
 #include "memory.h"
 #include <stdint.h>
 
+#define GPIO_MODE    0x00
+#define GPIO_OTYPE   0x04
+#define GPIO_OSPEED  0x08
+#define GPIO_PUPD    0x0c
+#define GPIO_AFRL    0x20
+#define GPIO_AFRH    0x24
+
+#define MODE_INPUT        0
+#define MODE_OUTPUT       1
+#define MODE_AF           2
+#define MODE_ANALOG       3
+#define OTYPE_PUSH_PULL   0
+#define OTYPE_OPEN_DRAIN  1
+#define OSPEED_LOW        0
+#define OSPEED_MEDIUM     1
+#define OSPEED_HIGH       2
+#define OSPEED_VERY_HIGH  3
+#define PUPD_NOPUPD       0
+#define PUPD_PULLUP       1
+#define PUPD_PULLDOWN     2
+
+#define BIT31  (1<<31)
+#define BIT30  (1<<30)
+#define BIT29  (1<<29)
+#define BIT28  (1<<28)
+#define BIT27  (1<<27)
+#define BIT26  (1<<26)
+#define BIT25  (1<<25)
+#define BIT24  (1<<24)
+#define BIT23  (1<<23)
+#define BIT22  (1<<22)
+#define BIT21  (1<<21)
+#define BIT20  (1<<20)
+#define BIT19  (1<<19)
+#define BIT18  (1<<18)
+#define BIT17  (1<<17)
+#define BIT16  (1<<16)
+#define BIT15  (1<<15)
+#define BIT14  (1<<14)
+#define BIT13  (1<<13)
+#define BIT12  (1<<12)
+#define BIT11  (1<<11)
+#define BIT10  (1<<10)
+#define BIT9   (1<<9)
+#define BIT8   (1<<8)
+#define BIT7   (1<<7)
+#define BIT6   (1<<6)
+#define BIT5   (1<<5)
+#define BIT4   (1<<4)
+#define BIT3   (1<<3)
+#define BIT2   (1<<2)
+#define BIT1   (1<<1)
+#define BIT0   (1<<0)
+
+#define GPIO15  (1<<15)
+#define GPIO14  (1<<14)
+#define GPIO13  (1<<13)
+#define GPIO12  (1<<12)
+#define GPIO11  (1<<11)
+#define GPIO10  (1<<10)
+#define GPIO9   (1<<9)
+#define GPIO8   (1<<8)
+#define GPIO7   (1<<7)
+#define GPIO6   (1<<6)
+#define GPIO5   (1<<5)
+#define GPIO4   (1<<4)
+#define GPIO3   (1<<3)
+#define GPIO2   (1<<2)
+#define GPIO1   (1<<1)
+#define GPIO0   (1<<0)
+
 #define MODER15  30
 #define MODER14  28
 #define MODER13  26
@@ -159,6 +230,23 @@
 #define IDR1   1 
 #define IDR0   0 
 
+#define AF15  15
+#define AF14  14
+#define AF13  13
+#define AF12  12
+#define AF11  11
+#define AF10  10
+#define AF9   9 
+#define AF8   8 
+#define AF7   7 
+#define AF6   6 
+#define AF5   5 
+#define AF4   4 
+#define AF3   3 
+#define AF2   2 
+#define AF1   1 
+#define AF0   0 
+
 #define BR15  31 
 #define BR14  30 
 #define BR13  29 
@@ -257,6 +345,8 @@
 #define GPIOE_LCKR       (volatile uint32_t *)(GPIOE + 0x1c)
 #define GPIOE_AFRL       (volatile uint32_t *)(GPIOE + 0x20)
 #define GPIOE_AFRH       (volatile uint32_t *)(GPIOE + 0x24)
+
+void gpio_ctrl(uint32_t gpio_dev, uint8_t reg_off, uint32_t bit_mask, uint8_t op);
 
 #endif
 
