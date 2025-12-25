@@ -42,14 +42,14 @@ clock_info_t init_clock(void);
 
 
 /* valid pll src: PLLSRC_HSI, PLLSRC_CSI, PLLSRC_HSE */ 
-void pll_1_start(unsigned src, unsigned M, unsigned Nmul, unsigned FRACN,
-    unsigned P, unsigned Q, unsigned R, unsigned fref_after_M);
+void pll_1_start(uint32_t src, uint32_t M, uint32_t Nmul, uint32_t FRACN,
+    uint32_t P, uint32_t Q, uint32_t R, uint32_t fref_after_M);
 
-void pll_2_start(unsigned src, unsigned M, unsigned Nmul, unsigned FRACN,
-    unsigned P, unsigned Q, unsigned R, unsigned fref_after_M);
+void pll_2_start(uint32_t src, uint32_t M, uint32_t Nmul, uint32_t FRACN,
+    uint32_t P, uint32_t Q, uint32_t R, uint32_t fref_after_M);
 
-void pll_3_start(unsigned src, unsigned M, unsigned Nmul, unsigned FRACN,
-    unsigned P, unsigned Q, unsigned R, unsigned fref_after_M);
+void pll_3_start(uint32_t src, uint32_t M, uint32_t Nmul, uint32_t FRACN,
+    uint32_t P, uint32_t Q, uint32_t R, uint32_t fref_after_M);
 
 #endif
 

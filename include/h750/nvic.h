@@ -5,8 +5,8 @@
 #include "memory.h"
 #include <stdint.h>
 
-#define NVIC_ISER   ((volatile unsigned int *)(NVIC + 0x000))
-#define NVIC_ICER   ((volatile unsigned int *)(NVIC + 0x080))
+#define NVIC_ISER   ((volatile uint32_t *)(NVIC + 0x000))
+#define NVIC_ICER   ((volatile uint32_t *)(NVIC + 0x080))
 
 void irq_enable(int32_t irqn);
 void irq_disable(int32_t irqn);

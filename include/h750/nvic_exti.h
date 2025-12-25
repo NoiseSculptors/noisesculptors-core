@@ -1,6 +1,8 @@
 #ifndef NVIC_EXTI_H
 #define NVIC_EXTI_H
 
+#include <stdint.h>
+
 /*
 https://developer.arm.com/documentation/107706/0100/Exceptions-and-interrupts-overview/NVIC-registers-for-interrupt-management
 --------------------------------------------------------------------------------  
@@ -257,32 +259,32 @@ EXTI event mask register (EXTI_CPUEMR3) Address offset: 0xA4
 EXTI pending register (EXTI_CPUPR3) Address offset: 0xA8
 */
 
-#define EXTI_RTSR1       (volatile unsigned int *)(EXTI + 0x00)
-#define EXTI_FTSR1       (volatile unsigned int *)(EXTI + 0x04)
-#define EXTI_SWIER1      (volatile unsigned int *)(EXTI + 0x08)
-#define EXTI_D3PMR1      (volatile unsigned int *)(EXTI + 0x0C)
-#define EXTI_D3PCR1L     (volatile unsigned int *)(EXTI + 0x10)
-#define EXTI_D3PCR1H     (volatile unsigned int *)(EXTI + 0x14)
-#define EXTI_RTSR2       (volatile unsigned int *)(EXTI + 0x20)
-#define EXTI_FTSR2       (volatile unsigned int *)(EXTI + 0x24)
-#define EXTI_SWIER2      (volatile unsigned int *)(EXTI + 0x28)
-#define EXTI_D3PMR2      (volatile unsigned int *)(EXTI + 0x2C)
-#define EXTI_D3PCR2L     (volatile unsigned int *)(EXTI + 0x30)
-#define EXTI_D3PCR2H     (volatile unsigned int *)(EXTI + 0x34)
-#define EXTI_RTSR3       (volatile unsigned int *)(EXTI + 0x40)
-#define EXTI_FTSR3       (volatile unsigned int *)(EXTI + 0x44)
-#define EXTI_SWIER3      (volatile unsigned int *)(EXTI + 0x48)
-#define EXTI_D3PMR3      (volatile unsigned int *)(EXTI + 0x4C)
-#define EXTI_D3PCR3L     (volatile unsigned int *)(EXTI + 0x50)
-#define EXTI_D3PCR3H     (volatile unsigned int *)(EXTI + 0x54)
-#define EXTI_CPUIMR1     (volatile unsigned int *)(EXTI + 0x80)
-#define EXTI_CPUEMR1     (volatile unsigned int *)(EXTI + 0x84)
-#define EXTI_CPUPR1      (volatile unsigned int *)(EXTI + 0x88)
-#define EXTI_CPUIMR2     (volatile unsigned int *)(EXTI + 0x90)
-#define EXTI_CPUEMR2     (volatile unsigned int *)(EXTI + 0x94)
-#define EXTI_CPUPR2      (volatile unsigned int *)(EXTI + 0x98)
-#define EXTI_CPUIMR3     (volatile unsigned int *)(EXTI + 0xA0)
-#define EXTI_CPUEMR3     (volatile unsigned int *)(EXTI + 0xA4)
-#define EXTI_CPUPR3      (volatile unsigned int *)(EXTI + 0xA8)
+#define EXTI_RTSR1       (volatile uint32_t *)(EXTI + 0x00)
+#define EXTI_FTSR1       (volatile uint32_t *)(EXTI + 0x04)
+#define EXTI_SWIER1      (volatile uint32_t *)(EXTI + 0x08)
+#define EXTI_D3PMR1      (volatile uint32_t *)(EXTI + 0x0C)
+#define EXTI_D3PCR1L     (volatile uint32_t *)(EXTI + 0x10)
+#define EXTI_D3PCR1H     (volatile uint32_t *)(EXTI + 0x14)
+#define EXTI_RTSR2       (volatile uint32_t *)(EXTI + 0x20)
+#define EXTI_FTSR2       (volatile uint32_t *)(EXTI + 0x24)
+#define EXTI_SWIER2      (volatile uint32_t *)(EXTI + 0x28)
+#define EXTI_D3PMR2      (volatile uint32_t *)(EXTI + 0x2C)
+#define EXTI_D3PCR2L     (volatile uint32_t *)(EXTI + 0x30)
+#define EXTI_D3PCR2H     (volatile uint32_t *)(EXTI + 0x34)
+#define EXTI_RTSR3       (volatile uint32_t *)(EXTI + 0x40)
+#define EXTI_FTSR3       (volatile uint32_t *)(EXTI + 0x44)
+#define EXTI_SWIER3      (volatile uint32_t *)(EXTI + 0x48)
+#define EXTI_D3PMR3      (volatile uint32_t *)(EXTI + 0x4C)
+#define EXTI_D3PCR3L     (volatile uint32_t *)(EXTI + 0x50)
+#define EXTI_D3PCR3H     (volatile uint32_t *)(EXTI + 0x54)
+#define EXTI_CPUIMR1     (volatile uint32_t *)(EXTI + 0x80)
+#define EXTI_CPUEMR1     (volatile uint32_t *)(EXTI + 0x84)
+#define EXTI_CPUPR1      (volatile uint32_t *)(EXTI + 0x88)
+#define EXTI_CPUIMR2     (volatile uint32_t *)(EXTI + 0x90)
+#define EXTI_CPUEMR2     (volatile uint32_t *)(EXTI + 0x94)
+#define EXTI_CPUPR2      (volatile uint32_t *)(EXTI + 0x98)
+#define EXTI_CPUIMR3     (volatile uint32_t *)(EXTI + 0xA0)
+#define EXTI_CPUEMR3     (volatile uint32_t *)(EXTI + 0xA4)
+#define EXTI_CPUPR3      (volatile uint32_t *)(EXTI + 0xA8)
 
 #endif

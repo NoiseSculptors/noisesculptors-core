@@ -2,6 +2,7 @@
 #define DWT_H
 
 #include "init.h"
+#include <stdint.h>
 
 void init_dwt(void);
 void dwt_start(void);

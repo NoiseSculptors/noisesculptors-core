@@ -2,7 +2,8 @@
 #define FLASH_H
 
 #include "memory.h"
+#include <stdint.h>
 
-#define FLASH_ACR    (volatile unsigned int *)(FLASH + 0x0)
+#define FLASH_ACR    (volatile uint32_t *)(FLASH + 0x0)
 
 #endif

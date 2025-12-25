@@ -45,21 +45,21 @@
 
 clock_info_t ci;
 
-static void pll_start_min(volatile unsigned *DIVR, volatile unsigned *FRACR,
-        unsigned on_bit, unsigned rdy_bit, unsigned rge_bit,
-        unsigned vcosel_bit, unsigned fracen_bit, unsigned divpen,
-        unsigned divqen, unsigned divren, unsigned divm_bit, unsigned src,
-        unsigned M, unsigned Nmul, unsigned FRACN, unsigned P, unsigned Q,
-        unsigned R, unsigned fref_after_M)
+static void pll_start_min(volatile uint32_t *DIVR, volatile uint32_t *FRACR,
+        uint32_t on_bit, uint32_t rdy_bit, uint32_t rge_bit,
+        uint32_t vcosel_bit, uint32_t fracen_bit, uint32_t divpen,
+        uint32_t divqen, uint32_t divren, uint32_t divm_bit, uint32_t src,
+        uint32_t M, uint32_t Nmul, uint32_t FRACN, uint32_t P, uint32_t Q,
+        uint32_t R, uint32_t fref_after_M)
 {
     *RCC_CR &= ~(1u<<on_bit);
 
-    unsigned v = *RCC_PLLCKSELR;
+    uint32_t v = *RCC_PLLCKSELR;
     v &= ~((0x3u<<PLLSRC) | (0x3Fu<<divm_bit));
     v |=  ((src&3u)<<PLLSRC) | ((M&0x3Fu)<<divm_bit);
     *RCC_PLLCKSELR = v;
 
-    unsigned cf = *RCC_PLLCFGR;
+    uint32_t cf = *RCC_PLLCFGR;
 
     cf &= ~((0x3u<<rge_bit)|(1u<<vcosel_bit)|(1u<<fracen_bit)|
             (1u<<divpen)|(1u<<divqen)|(1u<<divren));
@@ -92,8 +92,8 @@ static void pll_start_min(volatile unsigned *DIVR, volatile unsigned *FRACR,
     while (!(*RCC_CR & (1u<<rdy_bit))) {}
 }
 
-void pll_1_start(unsigned src, unsigned M, unsigned Nmul, unsigned FRACN,
-    unsigned P, unsigned Q, unsigned R, unsigned fref_after_M)
+void pll_1_start(uint32_t src, uint32_t M, uint32_t Nmul, uint32_t FRACN,
+    uint32_t P, uint32_t Q, uint32_t R, uint32_t fref_after_M)
 {
     pll_start_min(RCC_PLL1DIVR, RCC_PLL1FRACR,
               PLL1ON, PLL1RDY, PLL1RGE, PLL1VCOSEL, PLL1FRACEN,
@@ -101,8 +101,8 @@ void pll_1_start(unsigned src, unsigned M, unsigned Nmul, unsigned FRACN,
               src, M, Nmul, FRACN, P, Q, R, fref_after_M);
 }
 
-void pll_2_start(unsigned src, unsigned M, unsigned Nmul, unsigned FRACN,
-    unsigned P, unsigned Q, unsigned R, unsigned fref_after_M)
+void pll_2_start(uint32_t src, uint32_t M, uint32_t Nmul, uint32_t FRACN,
+    uint32_t P, uint32_t Q, uint32_t R, uint32_t fref_after_M)
 {
     pll_start_min(RCC_PLL2DIVR, RCC_PLL2FRACR,
               PLL2ON, PLL2RDY, PLL2RGE, PLL2VCOSEL, PLL2FRACEN,
@@ -110,8 +110,8 @@ void pll_2_start(unsigned src, unsigned M, unsigned Nmul, unsigned FRACN,
               src, M, Nmul, FRACN, P, Q, R, fref_after_M);
 }
 
-void pll_3_start(unsigned src, unsigned M, unsigned Nmul, unsigned FRACN,
-    unsigned P, unsigned Q, unsigned R, unsigned fref_after_M)
+void pll_3_start(uint32_t src, uint32_t M, uint32_t Nmul, uint32_t FRACN,
+    uint32_t P, uint32_t Q, uint32_t R, uint32_t fref_after_M)
 {
     pll_start_min(RCC_PLL3DIVR, RCC_PLL3FRACR,
               PLL3ON, PLL3RDY, PLL3RGE, PLL3VCOSEL, PLL3FRACEN,
