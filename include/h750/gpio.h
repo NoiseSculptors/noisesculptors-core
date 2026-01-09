@@ -346,7 +346,7 @@
 #define GPIOE_AFRL       (volatile uint32_t *)(GPIOE + 0x20)
 #define GPIOE_AFRH       (volatile uint32_t *)(GPIOE + 0x24)
 
-void gpio_ctrl(uint32_t gpio_dev, uint8_t reg_off, uint32_t bit_mask, uint8_t op);
+void gpio_ctrl(uint32_t gpio_dev, uint8_t reg_off, uint16_t bit_mask, uint8_t op);
 
 #endif
 

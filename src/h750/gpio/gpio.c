@@ -1,11 +1,10 @@
 
 #include "gpio.h"
 
-void gpio_ctrl(uint32_t gpio_dev, uint8_t reg_off, uint32_t bit_mask, uint8_t op)
+void gpio_ctrl(uint32_t gpio_dev, uint8_t reg_off, uint16_t bit_mask, uint8_t op)
 {
     uint8_t erase_msk;
     uint8_t mult;
-    uint8_t stop_bit;
     uint8_t afr_h = 0;
     volatile uint32_t *reg;
 
@@ -16,7 +15,6 @@ void gpio_ctrl(uint32_t gpio_dev, uint8_t reg_off, uint32_t bit_mask, uint8_t op
         case GPIO_OTYPE:
             erase_msk = 1;
             mult = 1;
-            stop_bit = 15;
         break;
 
         /* x2 */
@@ -25,20 +23,18 @@ void gpio_ctrl(uint32_t gpio_dev, uint8_t reg_off, uint32_t bit_mask, uint8_t op
         case GPIO_PUPD:
             erase_msk = 3;
             mult = 2;
-            stop_bit=15;
         break;
 
         /* x4 split into AFRH:31..16, AFRL:15..0 */
         case GPIO_AFRH:
-            afr_h = 16;
+            afr_h = 8;
         case GPIO_AFRL:
             erase_msk = 0xf;
             mult = 4;
-            stop_bit = 31;
         break;
     }
   
-    for(int i=0;i<=stop_bit;i++){
+    for(int i=0;i<=15;i++){
         if(bit_mask & (1u<<i)){
             *reg &= ~(erase_msk << (i-afr_h)*mult); 
             if(op>0)
