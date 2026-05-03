@@ -5,7 +5,7 @@ void gpio_ctrl(uint32_t gpio_dev, uint8_t reg_off, uint16_t bit_mask, uint8_t op
 {
     uint8_t erase_msk;
     uint8_t mult;
-    uint8_t afr_h = 0;
+    uint8_t afr_h;
     volatile uint32_t *reg;
 
     reg = (volatile uint32_t*)(gpio_dev + reg_off);
@@ -27,13 +27,17 @@ void gpio_ctrl(uint32_t gpio_dev, uint8_t reg_off, uint16_t bit_mask, uint8_t op
 
         /* x4 split into AFRH:31..16, AFRL:15..0 */
         case GPIO_AFRH:
-            afr_h = 8;
         case GPIO_AFRL:
             erase_msk = 0xf;
             mult = 4;
         break;
     }
-  
+
+    if(reg_off == GPIO_AFRH)
+        afr_h = 8;
+    else
+        afr_h = 0;
+
     for(int i=0;i<=15;i++){
         if(bit_mask & (1u<<i)){
             *reg &= ~(erase_msk << (i-afr_h)*mult); 
