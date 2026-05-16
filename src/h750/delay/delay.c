@@ -11,8 +11,8 @@ extern const clock_info_t ci;
 
 void delay_ms(uint32_t ms)
 {
-    uint32_t ctr = ms * 10;
-    uint32_t ref = (ci.sysclk_hz / 2 / 10000)-22;
+    volatile uint32_t ctr = ms * 10;
+    volatile uint32_t ref = (ci.sysclk_hz / 2 / 10000)-22;
     *TIM6_PSC = 0;
     *TIM6_CR1 = 1;
     *TIM6_CNT = 0;
@@ -25,8 +25,8 @@ void delay_ms(uint32_t ms)
 
 void delay_us(uint32_t us)
 {
-    uint32_t ctr = us;
-    uint32_t ref = (ci.sysclk_hz / 2 / 1000000)-21;
+    volatile uint32_t ctr = us;
+    volatile uint32_t ref = (ci.sysclk_hz / 2 / 1000000)-21;
     *TIM6_PSC = 0;
     *TIM6_CR1 = 1;
     *TIM6_CNT = 0;
