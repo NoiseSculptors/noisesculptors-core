@@ -34,7 +34,7 @@ static void qspi_wait_busy(void)
 }
 
 /* only for up to 4 bytes (uint8_t) */
-uint32_t qspi_cmd_u32(uint32_t mode,
+static uint32_t qspi_cmd_u32(uint32_t mode,
                              uint32_t rw,
                              uint8_t  instr,
                              uint32_t value,
@@ -87,14 +87,14 @@ static void qspi_write_instruction(uint8_t instruction)
     qspi_cmd_u32(QPI_MODE, WRITE,instruction, 0, 1);
 }
 
-uint32_t qspi_read_status_register(uint32_t status_reg)
+static uint32_t qspi_read_status_register(uint32_t status_reg)
 {
     return (uint8_t)((qspi_cmd_u32(QPI_MODE, READ, status_reg, 0, 1) & 0xff));
 }
 
-void qspi_write_status_register(uint32_t status_reg, uint8_t value)
+static void qspi_write_status_register(uint32_t status_reg, uint8_t value)
 {
-    (qspi_cmd_u32(QPI_MODE, WRITE, status_reg, value, 1) & 0xff);
+    qspi_cmd_u32(QPI_MODE, WRITE, status_reg, value, 1);
 }
 
 void init_qspi(uint8_t prescaler)
