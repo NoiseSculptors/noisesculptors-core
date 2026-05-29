@@ -82,17 +82,17 @@ static uint32_t qspi_cmd_u32(uint32_t mode,
     return dr;
 }
 
-static void qspi_write_instruction(uint8_t instruction)
+void qspi_write_instruction(uint8_t instruction)
 {
     qspi_cmd_u32(QPI_MODE, WRITE,instruction, 0, 1);
 }
 
-static uint32_t qspi_read_status_register(uint32_t status_reg)
+uint32_t qspi_read_status_register(uint32_t status_reg)
 {
     return (uint8_t)((qspi_cmd_u32(QPI_MODE, READ, status_reg, 0, 1) & 0xff));
 }
 
-static void qspi_write_status_register(uint32_t status_reg, uint8_t value)
+void qspi_write_status_register(uint32_t status_reg, uint8_t value)
 {
     qspi_cmd_u32(QPI_MODE, WRITE, status_reg, value, 1);
 }
@@ -178,7 +178,7 @@ with QSPISEL[1:0] bits in the RCC_D1CCIPR register.
     *GPIOE_AFRH  |=    (0xAu<<AFR8)|(0xAu<<AFR9)|(0xAu<<AFR10);
 
     *QUADSPI_DCR |=
-        (0x17<<16) /* 20:16 FSIZE   (2^23+1)/1024/1024 = 16MB (spi flash size) */
+        (0x17<<16) /* 20:16 FSIZE   (2^(0x17+1))/1024/1024 = 16MB (spi flash size) */
       | (0x7u<<8)  /* 10:8  CSHT    chip select high time */
       | (0x1u<<0); /* 0     CKMODE  1 CLK stays high while NCS high (mode 3) */
 
