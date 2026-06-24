@@ -1,5 +1,5 @@
 
-/* program executes from Flash (0x08000000), data+stack in DTCM */
+/* program executes from Flash (0x08000000), data in AXI, stack in DTCM */
 ENTRY(Reset_Handler)
 
 /* Stack in DTCM */
@@ -64,12 +64,23 @@ SECTIONS
     . = ALIGN(8);
     __data_start__ = .;
     *(.data*)
-    __data_end__ = .;
     . = ALIGN(8);
-  } > DTCM AT > FLASH
+    __data_end__ = .;
+  } > AXI AT > FLASH
 
   /* Define copy source (LMA) symbol for startup */
-  __data_load_start__ = LOADADDR(.data);
+  __data_load__ = LOADADDR(.data);
+
+  .dma :
+  {
+    . = ALIGN(8);
+    __dma_start__ = .;
+    *(.data*)
+    . = ALIGN(8);
+    __dma_end__ = .;
+  } > AXI AT > FLASH
+
+  __dma_load__ = LOADADDR(.data);
 
   /* Zero-init */
   .bss (NOLOAD) :
@@ -77,12 +88,9 @@ SECTIONS
     . = ALIGN(8);
     __bss_start__ = .;
     *(.bss*) *(COMMON)
-    __bss_end__ = .;
     . = ALIGN(8);
+    __bss_end__ = .;
   } > DTCM
-
-  /* Optional heap (can place in AXI if large buffers needed) */
-  PROVIDE(__heap_start__ = ORIGIN(AXI));
 
   /* Any function tagged section(".itcm") will land here. */
   .itcm :
@@ -90,8 +98,8 @@ SECTIONS
     . = ALIGN(16);
     __itcm_start__ = .;
     *(.itcm) *(.itcm.*)
-    __itcm_end__ = .;
     . = ALIGN(16);
+    __itcm_end__ = .;
   } > ITCM AT > FLASH
   __itcm_load__ = LOADADDR(.itcm);
 
@@ -101,8 +109,8 @@ SECTIONS
     . = ALIGN(8);
     __dtcm_data_start__ = .;
     *(.dtcm_data) *(.dtcm_data.*)
-    __dtcm_data_end__ = .;
     . = ALIGN(8);
+    __dtcm_data_end__ = .;
   } > DTCM AT > FLASH
   __dtcm_data_load__ = LOADADDR(.dtcm_data);
 
@@ -112,8 +120,8 @@ SECTIONS
     . = ALIGN(8);
     __dtcm_bss_start__ = .;
     *(.dtcm_bss) *(.dtcm_bss.*)
-    __dtcm_bss_end__ = .;
     . = ALIGN(8);
+    __dtcm_bss_end__ = .;
   } > DTCM
 }
 

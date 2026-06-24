@@ -71,12 +71,23 @@ SECTIONS
     . = ALIGN(8);
     __data_start__ = .;
     *(.data*)
-    __data_end__ = .;
     . = ALIGN(8);
+    __data_end__ = .;
   } > AXI
 
   /* Make load=run so startup’s copy becomes a no-op in AXI builds */
-  __data_load_start__ = __data_start__;
+  __data_load__ = __data_start__;
+
+  .dma :
+  {
+    . = ALIGN(8);
+    __dma_start__ = .;
+    *(.data*)
+    . = ALIGN(8);
+    __dma_end__ = .;
+  } > AXI
+
+  __dma_load__ = LOADADDR(.dma);
   
   /* Zero-init */
   .bss (NOLOAD) :
@@ -84,12 +95,9 @@ SECTIONS
     . = ALIGN(8);
     __bss_start__ = .;
     *(.bss*) *(COMMON)
-    __bss_end__ = .;
     . = ALIGN(8);
+    __bss_end__ = .;
   } > AXI
-
-  /* Optional heap start marker */
-  PROVIDE(__heap_start__ = .);
 
   /* Any function tagged section(".itcm") will land here. */
   .itcm :
@@ -97,9 +105,9 @@ SECTIONS
     . = ALIGN(16);
     __itcm_start__ = .;
     *(.itcm) *(.itcm.*)
-    __itcm_end__ = .;
     . = ALIGN(16);
-  } > ITCM AT > FLASH
+    __itcm_end__ = .;
+  } > ITCM AT > AXI
   __itcm_load__ = LOADADDR(.itcm);
 
   /* For initialized variables placed with section(".dtcm_data") */
@@ -108,9 +116,9 @@ SECTIONS
     . = ALIGN(8);
     __dtcm_data_start__ = .;
     *(.dtcm_data) *(.dtcm_data.*)
-    __dtcm_data_end__ = .;
     . = ALIGN(8);
-  } > DTCM AT > FLASH
+    __dtcm_data_end__ = .;
+  } > DTCM AT > AXI
   __dtcm_data_load__ = LOADADDR(.dtcm_data);
 
   /* For zero-init variables placed with section(".dtcm_bss") */

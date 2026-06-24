@@ -2,33 +2,27 @@
 #include <stdint.h>
 #include "vtor.h"
 
-extern uint32_t __StackTop;          /* DTCM stack top */
-
-extern uint32_t __VectorTable;       /* ORIGIN(FLASH) = 0x08000000 */
-                                     /* ORIGIN(AXI)   = 0x24000000 */
-
-extern uint32_t __data_load_start__; /* LMA in FLASH (LOADADDR(.data)) */
-extern uint32_t __data_start__;      /* VMA in DTCM */
-extern uint32_t __data_end__;        /* VMA in DTCM */
-
-extern uint32_t __bss_start__;       /* VMA in DTCM */
-extern uint32_t __bss_end__;         /* VMA in DTCM */
-
-/* ITCM/DTCM specific */
-extern uint32_t __itcm_load__;
-extern uint32_t __itcm_start__;
-extern uint32_t __itcm_end__;
+extern uint32_t __StackTop;
+extern uint32_t __VectorTable;
+extern uint32_t __bss_end__;
+extern uint32_t __bss_start__;
+extern uint32_t __data_end__;
+extern uint32_t __data_load__;
+extern uint32_t __data_start__;
+extern uint32_t __dma_end__;
+extern uint32_t __dma_load__;
+extern uint32_t __dma_start__;
+extern uint32_t __dtcm_bss_end__;
+extern uint32_t __dtcm_bss_start__;
+extern uint32_t __dtcm_data_end__;
 extern uint32_t __dtcm_data_load__;
 extern uint32_t __dtcm_data_start__;
-extern uint32_t __dtcm_data_end__;
-extern uint32_t __dtcm_bss_start__;
-extern uint32_t __dtcm_bss_end__;
+extern uint32_t __itcm_end__;
+extern uint32_t __itcm_load__;
+extern uint32_t __itcm_start__;
 
 void def_irq_handler(void);
 void Reset_Handler(void);
-
-/* If you use newlib/C++ static constructors, uncomment this: */
-// extern void __libc_init_array(void);
 
 /* Core/IRQ weak aliases (unchanged) */
 void NMI_Handler(void)                         __attribute__ ((weak, alias("def_irq_handler")));
@@ -216,7 +210,12 @@ void Reset_Handler(void) {
     }
 
     /* Copy regular .data (in DTCM for flash-boot builds) */
-    copy32(&__data_start__, &__data_load_start__, &__data_end__);
+    copy32(&__data_start__, &__data_load__, &__data_end__);
+
+    /* Copy .dma to AXI (DTCM is not accessible for DMA) */
+    if (&__dma_start__ != &__dma_end__) {
+        copy32(&__dma_start__, &__dma_load__, &__dma_end__);
+    }
 
     /* Copy extra initialized fast data to DTCM if a dedicated .dtcm_data
        section is used */
@@ -231,10 +230,6 @@ void Reset_Handler(void) {
     if (&__dtcm_bss_start__ != &__dtcm_bss_end__) {
         zero32(&__dtcm_bss_start__, &__dtcm_bss_end__);
     }
-
-    /* If using C++/newlib init arrays, uncomment: */
-    // __libc_init_array(); /* enables .preinit_array/.init_array/.fini_array */
-
 
     /* Jump to main */
     (void)main();
