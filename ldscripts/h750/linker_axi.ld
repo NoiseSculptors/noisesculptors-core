@@ -78,16 +78,14 @@ SECTIONS
   /* Make load=run so startup’s copy becomes a no-op in AXI builds */
   __data_load__ = __data_start__;
 
-  .dma :
+  .dma (NOLOAD):
   {
-    . = ALIGN(8);
+    . = ALIGN(32);
     __dma_start__ = .;
-    *(.data*)
-    . = ALIGN(8);
+    *(.dma*)
+    . = ALIGN(32);
     __dma_end__ = .;
   } > AXI
-
-  __dma_load__ = LOADADDR(.dma);
   
   /* Zero-init */
   .bss (NOLOAD) :

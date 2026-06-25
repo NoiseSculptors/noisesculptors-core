@@ -71,14 +71,14 @@ SECTIONS
   /* Define copy source (LMA) symbol for startup */
   __data_load__ = LOADADDR(.data);
 
-  .dma :
+  .dma (NOLOAD) :
   {
-    . = ALIGN(8);
+    . = ALIGN(32);
     __dma_start__ = .;
-    *(.data*)
-    . = ALIGN(8);
+    *(.dma*)
+    . = ALIGN(32);
     __dma_end__ = .;
-  } > AXI AT > FLASH
+  } > AXI
 
   __dma_load__ = LOADADDR(.data);
 

@@ -214,7 +214,7 @@ void Reset_Handler(void) {
 
     /* Copy .dma to AXI (DTCM is not accessible for DMA) */
     if (&__dma_start__ != &__dma_end__) {
-        copy32(&__dma_start__, &__dma_load__, &__dma_end__);
+        zero32(&__dma_start__, &__dma_end__);
     }
 
     /* Copy extra initialized fast data to DTCM if a dedicated .dtcm_data
