@@ -39,7 +39,8 @@ elseif(_part_lc STREQUAL "l432")
 elseif(_part_lc STREQUAL "h750")
   set(MCU "h750")
   set(ARCH_FLAGS -mthumb -mcpu=cortex-m7)
-  set(FPU_FLAGS  -mfpu=fpv5-sp-d16 -mfloat-abi=hard -fsingle-precision-constant)
+  set(FPU_FLAGS  -mfpu=fpv5-sp-d16 -mfloat-abi=hard
+                 -fsingle-precision-constant -ffast-math)
   set(VALID_RUNS flash axi)
 else()
   message(FATAL_ERROR "Unknown PART='${PART}' -> cannot deduce MCU family")
@@ -128,11 +129,15 @@ target_include_directories(noisesculptors_${MCU}
     ${MCU_INC_DIRS}
 )
 
-set(WARN_FLAGS
-  -Wall -Wextra -Wshadow -Wdouble-promotion -Wformat=2 -Wundef
-  -Wstrict-prototypes -Wmissing-prototypes -Wredundant-decls
-  -Wpointer-arith -Wcast-align -Wwrite-strings -Wstrict-overflow
-)
+option(ENABLE_WARNINGS "Enable strict compiler warnings" OFF)
+
+if(ENABLE_WARNINGS)
+  set(WARN_FLAGS
+    -Wall -Wextra -Wshadow -Wdouble-promotion -Wformat=2 -Wundef
+    -Wstrict-prototypes -Wmissing-prototypes -Wredundant-decls -Wpointer-arith
+    -Wcast-align -Wwrite-strings -Wstrict-overflow
+  )
+endif()
 
 target_compile_options(noisesculptors_${MCU}
   PUBLIC

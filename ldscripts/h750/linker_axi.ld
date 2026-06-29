@@ -78,15 +78,6 @@ SECTIONS
   /* Make load=run so startup’s copy becomes a no-op in AXI builds */
   __data_load__ = __data_start__;
 
-  .dma (NOLOAD):
-  {
-    . = ALIGN(32);
-    __dma_start__ = .;
-    *(.dma*)
-    . = ALIGN(32);
-    __dma_end__ = .;
-  } > AXI
-  
   /* Zero-init */
   .bss (NOLOAD) :
   {
@@ -97,6 +88,15 @@ SECTIONS
     __bss_end__ = .;
   } > AXI
 
+  .dma (NOLOAD):
+  {
+    . = ALIGN(32);
+    __dma_start__ = .;
+    *(.dma*)
+    . = ALIGN(32);
+    __dma_end__ = .;
+  } > SRAM123
+  
   /* Any function tagged section(".itcm") will land here. */
   .itcm :
   {

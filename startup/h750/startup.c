@@ -1,5 +1,6 @@
 
 #include <stdint.h>
+#include "rcc.h"
 #include "vtor.h"
 
 extern uint32_t __StackTop;
@@ -191,6 +192,10 @@ static inline void zero32(uint32_t *dst, uint32_t *end){
 void def_irq_handler(void) { while (1); }
 
 void Reset_Handler(void) {
+
+    /* Turn on SRAM1..3 (contiguous region) clock */
+    *RCC_AHB2ENR |= (7u<<29); /* SRAM1EN SRAM2EN SRAM3EN */
+
     /* Vector table is in FLASH / ;
        set VTOR (harmless even though reset already used it) */
     *SCB_VTOR = (uint32_t)&__VectorTable;
@@ -212,7 +217,7 @@ void Reset_Handler(void) {
     /* Copy regular .data (in DTCM for flash-boot builds) */
     copy32(&__data_start__, &__data_load__, &__data_end__);
 
-    /* Copy .dma to AXI (DTCM is not accessible for DMA) */
+    /* Zero .dma in SRAM123 (DTCM is not accessible for DMA) */
     if (&__dma_start__ != &__dma_end__) {
         zero32(&__dma_start__, &__dma_end__);
     }

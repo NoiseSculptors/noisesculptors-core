@@ -71,17 +71,6 @@ SECTIONS
   /* Define copy source (LMA) symbol for startup */
   __data_load__ = LOADADDR(.data);
 
-  .dma (NOLOAD) :
-  {
-    . = ALIGN(32);
-    __dma_start__ = .;
-    *(.dma*)
-    . = ALIGN(32);
-    __dma_end__ = .;
-  } > AXI
-
-  __dma_load__ = LOADADDR(.data);
-
   /* Zero-init */
   .bss (NOLOAD) :
   {
@@ -90,7 +79,16 @@ SECTIONS
     *(.bss*) *(COMMON)
     . = ALIGN(8);
     __bss_end__ = .;
-  } > DTCM
+  } > AXI
+
+  .dma (NOLOAD) :
+  {
+    . = ALIGN(32);
+    __dma_start__ = .;
+    *(.dma*)
+    . = ALIGN(32);
+    __dma_end__ = .;
+  } > SRAM123
 
   /* Any function tagged section(".itcm") will land here. */
   .itcm :
